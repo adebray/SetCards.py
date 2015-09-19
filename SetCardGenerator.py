@@ -1,92 +1,89 @@
-#!/usr/bin/python
+#!/usr/bin/env python3.4
 
-# I hope to eventually generate Set cards programatically as .png files. Of course this has been
-# done before, but I want to try this style of art.
+# A program for generating SET cards as .png files, using Pillow.
+# This particular design represents them as ASCII art, but I'm happy
+# to try other designs.
 
-# I, uh, have no idea what I am doing.
-# September 1, 2013 Arun Debray
+# The type annotations here don't do anything yet,
+# but I might use them in the future.
 
-import sys
-import Image
-import ImageFont
-import ImageDraw
+# Some TODOs, in no particular order:
+	# 1. clean up the code a little bit, and ensure it works in multiple versions of Python
+	# 2. Generate cards with a lighter background
+	# 3. Maybe fiddle with the design?
 
-def color(n):
-    return n/3 % 3
-def number(n):
-    return 1 + n % 3
-def shading(n):
-    return n/9 % 3
-def shape(n):
-    return n/27 % 3
+from PIL import (
+	Image,
+	ImageDraw,
+	ImageFont
+)
 
-# centers the rows on a 25-column grid by prepending whitespace
-def center(strings):
-    return [' '*((26 - len(s))/2) + s for s in strings]
-# list comps for getting the right number of blobs on the card
-def clone(strings, cardnum):
-    return [' '.join([s] * number(cardnum)) for s in strings]
-def get_shape(cardnum):
-    if shape(cardnum) == 0:
-        return ['  /\\  ',
-                ' /%s\\ ' % (fill_char(cardnum) * 2),
-                '/%s\\' % (fill_char(cardnum) * 4),
-                '\\%s/' % (fill_char(cardnum) * 4),
-                ' \\%s/ ' % (fill_char(cardnum) * 2),
-                '  \\/  ']
-    elif shape(cardnum) == 1:
-        return ['  __  ',
-                ' /%s\\ ' % (fill_char(cardnum) * 2),
-                '|%s|' % (fill_char(cardnum) * 4),
-                '|%s|' % (fill_char(cardnum) * 4),
-                '|%s|' % (fill_char(cardnum) * 4),
-                ' \\%s/ ' % (fill_char(cardnum) * 2 if shading(cardnum) != 0 else '__')]
-    else:
-        return [' ____ ',
-                '/%s/ ' % (fill_char(cardnum) * 3),
-                '\\%s\\ ' % (fill_char(cardnum) * 3),
-                ' \\%s\\' % (fill_char(cardnum) * 3),
-                ' /%s/' % (fill_char(cardnum) * 3),
-                '/___/ ' if shading(cardnum) == 0 else '/%s/ ' % (fill_char(cardnum) * 3)]
+def color(n: int) -> int:
+	return n // 3 % 3
+def number(n: int) -> int:
+	return 1 + n % 3
+def shading(n: int) -> int:
+	return n // 9 % 3
+def shape(n: int) -> int:
+	return n // 27 % 3
 
-def text_of(cardnum):
-    return center(clone(get_shape(cardnum), cardnum))
-   #return ['0123456789012345678901234'] * 10  -- this is just for testing!
-#    return center(clone(['  /\\  ',
-#                         ' /%s\\ ' % (fill_char(cardnum) * 2),
-#                         '/%s\\' % (fill_char(cardnum) * 4),
-#                         '\\%s/' % (fill_char(cardnum) * 4),
-#                         ' \\%s/ ' % (fill_char(cardnum) * 2),
-#                         '  \\/  '], cardnum))
-#
-def fill_char(cardnum):
-    #return ' -#'[shading(cardnum)] if shape(cardnum) != 1 else ' _#'[shading(cardnum)]
-    return ' _#'[shading(cardnum)]
-def fill_color(cardnum):
-    return [(255, 0, 0), (0, 255, 0), (255, 0, 255)][color(cardnum)]
+# Respectively, empty, shaded, filled depending on the shadng
+def fill_char(cardnum: int) -> str:
+	return ' _#'[shading(cardnum)]
 
-def offset(cardnum):
-    return 20 if shape(cardnum) == 0 else 15
+# Returns the color of the ASCII art for the card
+def fill_color(cardnum: int) -> (int, int, int):
+	return [(255, 0, 0), (0, 255, 0), (255, 0, 255)][color(cardnum)]
 
-# The card number, from 0 to 80
-def main(cardnum):
-    image = Image.new('RGB', (150, 100))
-#    draw_font = ImageFont.truetype("Menlo Regular.ttf", 16)
-    drawer = ImageDraw.Draw(image)
-    text_strings = text_of(cardnum)
-    for i, line in enumerate(text_strings):
-        drawer.text((0, offset(cardnum) + 10 * i), line, fill=fill_color(cardnum))#, font=draw_font)
-    image.save('cards/%d.png' % cardnum)
+# Given a list of strings, centers each string in a 25-character string by adding
+# whitespace on both ends.
+# This will fail if given strings of more than 25 characters.
+def center(strings: [str]) -> (str): # actually returns a generator
+	return (' '*((26 - len(s)) // 2) + s for s in strings)
+
+# Given the shape of the blob on the SET card and the card number,
+# clones the shame to appear that number of times on the card.
+def clone(strings: [str], cardnum: int) -> (str): # actually returns a generator
+	return (' '.join([s] * number(cardnum)) for s in strings)
+
+# Uses the card's shading and shape attributes to return the shape and filling of
+# of the blob for that card, which is processed into the fill card.
+def get_shape(cardnum: int) -> [str]:
+	if shape(cardnum) == 0:
+		return ['  /\\  ',
+				' /%s\\ ' % (fill_char(cardnum) * 2),
+				'/%s\\' % (fill_char(cardnum) * 4),
+				'\\%s/' % (fill_char(cardnum) * 4),
+				' \\%s/ ' % (fill_char(cardnum) * 2),
+				'  \\/  ']
+	elif shape(cardnum) == 1:
+		return ['  __  ',
+				' /%s\\ ' % (fill_char(cardnum) * 2),
+				'|%s|' % (fill_char(cardnum) * 4),
+				'|%s|' % (fill_char(cardnum) * 4),
+				'|%s|' % (fill_char(cardnum) * 4),
+				' \\%s/ ' % (fill_char(cardnum) * 2 if shading(cardnum) != 0 else '__')]
+	else:
+		return [' ____ ',
+				'/%s/ ' % (fill_char(cardnum) * 3),
+				'\\%s\\ ' % (fill_char(cardnum) * 3),
+				' \\%s\\' % (fill_char(cardnum) * 3),
+				' /%s/' % (fill_char(cardnum) * 3),
+				'/___/ ' if shading(cardnum) == 0 else '/%s/ ' % (fill_char(cardnum) * 3)]
+
+# Uses the above functions to return the complete ASCII art image of the card
+def text_of(cardnum: int) -> (str): # returns a generator
+	return center(clone(get_shape(cardnum), cardnum))
+
+# Given a card number, from 0 to 80, produces the card
+def make_card(cardnum: int) -> None:
+	image = Image.new('RGB', (150, 100))
+	drawer = ImageDraw.Draw(image)
+	offset = 20 if shape(cardnum) == 0 else 15
+	for i, line in enumerate(text_of(cardnum)):
+		drawer.text((0, offset + 10 * i), line, fill=fill_color(cardnum))
+	image.save('cards/%d.png' % cardnum)
 
 if __name__ == '__main__':
-#    if len(sys.argv) < 2:
-    for i in range(81):
-        main(i)
-#        print 'Usage: ./SetCardGenerator.py number'
-#        exit(1)
-#    cardnum = int(sys.argv[1])
-#    if 0 <= cardnum < 81:
-#        main(cardnum)
-#    else:
-#        print 'Card number must be between 0 and 80, inclusive.'
-#        exit(1)
+	for i in range(81):
+		make_card(i)
