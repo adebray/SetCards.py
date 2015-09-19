@@ -9,8 +9,9 @@ to try Pillow. Anyways, I'm planning to clean up the code, switch to
 Pillow, and fiddle with the designs/colors/etc. until I'm happy.
 
 ### Current State
-I've just ported the code to Pillow, and cleaned it up slightly. Next,
-I should play with the design changes I was hoping to do.
+I've ported the code to Pillow, and cleaned it up slightly. I've also made
+the program generate lighter cards. Next, I should play with the design
+changes I was hoping to do.
 
 One specific goal I have is to make it easy to change the background color
 (which could be useful to indicate a card was clicked).

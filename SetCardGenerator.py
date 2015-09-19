@@ -76,14 +76,16 @@ def text_of(cardnum: int) -> (str): # returns a generator
 	return center(clone(get_shape(cardnum), cardnum))
 
 # Given a card number, from 0 to 80, produces the card
-def make_card(cardnum: int) -> None:
-	image = Image.new('RGB', (150, 100))
+def make_card(cardnum: int, color: (int, int, int), directory: str) -> None:
+	image = Image.new('RGB', (150, 100), color=color)
 	drawer = ImageDraw.Draw(image)
 	offset = 20 if shape(cardnum) == 0 else 15
 	for i, line in enumerate(text_of(cardnum)):
 		drawer.text((0, offset + 10 * i), line, fill=fill_color(cardnum))
-	image.save('cards/%d.png' % cardnum)
+	image.save(directory + '/%d.png' % cardnum)
 
 if __name__ == '__main__':
 	for i in range(81):
-		make_card(i)
+		# produces one card with a black background, and one with a lighter gray background
+		make_card(i, (0, 0, 0), 'cards')
+		make_card(i, (85, 85, 85), 'cards_gray')
